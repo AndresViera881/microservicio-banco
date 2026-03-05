@@ -1,0 +1,37 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: cuenta-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bancobd}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: cuenta_schema
+    open-in-view: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+# URL del cliente-service (inyectada por Docker o por default local)
+services:
+  cliente-service:
+    url: http://${CLIENTE_SERVICE_HOST:localhost}:${CLIENTE_SERVICE_PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

@@ -1,0 +1,81 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      # CORS global para el frontend
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+      # ── Rutas hacia cada microservicio ────────────────────────────────────
+      routes:
+        # Clientes
+        - id: cliente-service
+          uri: http://${CLIENTE_SERVICE_HOST:localhost}:${CLIENTE_SERVICE_PORT:8081}
+          predicates:
+            - Path=/api/clientes/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: cliente-cb
+                fallbackUri: forward:/fallback/clientes
+
+        # Cuentas
+        - id: cuenta-service
+          uri: http://${CUENTA_SERVICE_HOST:localhost}:${CUENTA_SERVICE_PORT:8082}
+          predicates:
+            - Path=/api/cuentas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: cuenta-cb
+                fallbackUri: forward:/fallback/cuentas
+
+        # Movimientos
+        - id: movimiento-service
+          uri: http://${MOVIMIENTO_SERVICE_HOST:localhost}:${MOVIMIENTO_SERVICE_PORT:8083}
+          predicates:
+            - Path=/api/movimientos/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: movimiento-cb
+                fallbackUri: forward:/fallback/movimientos
+
+        # Reportes (también en movimiento-service)
+        - id: reporte-service
+          uri: http://${MOVIMIENTO_SERVICE_HOST:localhost}:${MOVIMIENTO_SERVICE_PORT:8083}
+          predicates:
+            - Path=/api/reportes/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: reporte-cb
+                fallbackUri: forward:/fallback/reportes
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

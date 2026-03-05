@@ -1,0 +1,3 @@
+com\banco\gateway\ApiGatewayApplication.class
+com\banco\gateway\LoggingFilter.class
+com\banco\gateway\FallbackController.class
